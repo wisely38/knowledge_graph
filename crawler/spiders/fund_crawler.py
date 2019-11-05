@@ -1,6 +1,7 @@
 import scrapy
 from bs4 import BeautifulSoup, Comment
 from urllib.parse import urlparse
+import os.path
 
 class FundSpider(scrapy.Spider):
     name = 'fundspider'
@@ -13,7 +14,7 @@ class FundSpider(scrapy.Spider):
             "Accept-Language": "en-US,en;q=0.5",
             "Accept-Encoding": "gzip, deflate, br"
         }
-        urls_filepath = "./resources/urls.txt"
+        urls_filepath = os.path.join("./resources/","urls.txt")
         with open(urls_filepath, mode='r') as handler:
             self.start_urls = handler.readlines()
         for url in self.start_urls:
@@ -45,13 +46,12 @@ class FundSpider(scrapy.Spider):
             if ele.find(class_='image') or self.should_skip_element(ele) or isinstance(ele.text, Comment) or ele is None:
                 continue
             if ele and len(ele)>0 and str(ele.string) != "None":
-                print(str(ele.string))
                 elements.append(ele.string.replace("\n", "").replace(u'\xa0', u' ').strip())
         return set(elements)       
 
     def parse(self, response):
         self.log("Parssing url:%s"%response.request.url)
-        filename = urlparse(response.request.url).path.replace("/","_") + ".txt"
+        filename = os.path.normpath(os.path.join(os.getcwd(),"../staging", urlparse(response.request.url).path.replace("/","_") + ".txt"))
         soup = BeautifulSoup(response.body)
         sentences = self.get_sentences(soup)
         with open(filename, 'w') as handler:
