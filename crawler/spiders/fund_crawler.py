@@ -2,6 +2,8 @@ import scrapy
 from bs4 import BeautifulSoup, Comment
 from urllib.parse import urlparse
 import os.path
+import shutil
+from datetime import date
 
 class FundSpider(scrapy.Spider):
     name = 'fundspider'
@@ -17,6 +19,15 @@ class FundSpider(scrapy.Spider):
         urls_filepath = os.path.join("./resources/","urls.txt")
         with open(urls_filepath, mode='r') as handler:
             self.start_urls = handler.readlines()
+
+        self.subfoldername = "../staging" + "/" + date.today().strftime("%m-%d-%Y") 
+        subfolderpath = os.path.normpath(os.path.join(os.getcwd(), self.subfoldername))
+        print("subfolderpath:%s"%type(subfolderpath))
+        if os.path.exists(subfolderpath):
+            # os.rmdir(subfolderpath)
+            shutil.rmtree(subfolderpath, ignore_errors=True)
+        os.mkdir(subfolderpath)
+
         for url in self.start_urls:
             yield scrapy.Request(url=url, headers=headers, callback=self.parse)
 
@@ -51,9 +62,10 @@ class FundSpider(scrapy.Spider):
 
     def parse(self, response):
         self.log("Parssing url:%s"%response.request.url)
-        filename = os.path.normpath(os.path.join(os.getcwd(),"../staging", urlparse(response.request.url).path.replace("/","_") + ".txt"))
+        filename = "crawler-output" + urlparse(response.request.url).path.replace("/","_") + ".txt"
+        filepath = os.path.normpath(os.path.join(os.getcwd(), self.subfoldername, filename))
         soup = BeautifulSoup(response.body)
         sentences = self.get_sentences(soup)
-        with open(filename, 'w') as handler:
+        with open(filepath, 'w') as handler:
             handler.writelines("%s\n" % sentence for sentence in sentences)
         self.log("File writen as %s for url:%s"%(filename,response.request.url))
