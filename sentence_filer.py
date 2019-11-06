@@ -4,6 +4,9 @@ from datetime import date
 import os.path
 import shutil
 import re
+import logging
+logger = logging.getLogger('knowledgegraph')
+logger.setLevel(logging.INFO)
 
 # @plac.annotations(
 #     patterns_loc=("Path to gazetteer", "positional", None, str),
@@ -40,20 +43,21 @@ def filter_sentences(doc_to_sents_map, sentences_arr):
             print("index:%d, word:%s, dep:%s, type:%s "%(index, tok.text, tok.dep_, result))
     return [x for x in map(sentences_arr.__getitem__, index_list)] 
 
-def write_output(filtered_sents, filtered_filepath):    
+def write_output(filtered_sents, filtered_filepath):
+    logger.info("Writing output to file: %s:"%filtered_filepath)
     with open(filtered_filepath, 'w') as handler:
-        handler.writelines("%s\n" % sentence for sentence in filtered_sents)
+        handler.writelines("%s" % sentence.text for sentence in filtered_sents)
 
 # needs to run first: python -m spacy download en_core_web_sm
 # def main(patterns_loc, text_loc, n=10000, lang="en"):
 def main():
-    # log("Start processing sentence filter...")
     subfoldername = "/staging/" + date.today().strftime("%m-%d-%Y") 
     subfolderpath = os.getcwd() + subfoldername 
-    print("subfolderpath:%s"%subfolderpath)
+    logger.info("Start processing sentence filter from folder:%s..."%subfolderpath)
     if os.path.exists(subfolderpath):
         for filename in os.listdir(subfolderpath):
             if re.match("crawler-output_.+.txt", filename):
+                logger.info("Start processing sentence filter for file:%s..."%filename)
                 with open(os.path.normpath(os.path.join(os.getcwd(), subfolderpath, filename)), "r") as handler:
                     filtered_filename = filename.replace("crawler-output_","filter-output_")
                     nlp = spacy.load("en_core_web_sm")
@@ -69,7 +73,7 @@ def main():
                         sentence_spans.extend(sents)                    
                     filtered_sents = filter_sentences(doc_to_sents_map, sentence_spans)
                     write_output(filtered_sents, os.path.normpath(os.path.join(os.getcwd(), subfolderpath,filtered_filename)))
-
+                    logger.info("Done processing sentence filter for file:%s..."%filename)
 
 
 if __name__ == "__main__":
