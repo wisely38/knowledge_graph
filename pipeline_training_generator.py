@@ -23,6 +23,7 @@ OBJ = ["dobj", "pobj", "dobj"]
 
 
 
+<<<<<<< Updated upstream
 def custom_seg(doc):
     prev = doc[0].text
     length = len(doc)
@@ -31,6 +32,17 @@ def custom_seg(doc):
             doc[index+1].sent_start = False
         prev = token.text
     return doc
+=======
+# def custom_seg(doc):
+#     boundary = re.compile('^[,]$')
+#     prev = doc[0].text
+#     length = len(doc)
+#     for index, token in enumerate(doc):
+#         if (token.text == '.' and boundary.match(prev) and index!=(length - 1)):
+#             doc[index+1].sent_start = False
+#         prev = token.text
+#     return doc
+>>>>>>> Stashed changes
 
 
 # needs to run first: python -m spacy download en_core_web_sm
@@ -46,9 +58,14 @@ def main():
                 logger.info("Start processing training data generator for file:%s..."%filename)
                 with open(os.path.normpath(os.path.join(os.getcwd(), subfolderpath, filename)), "r") as handler:
                     filtered_filename = filename.replace("crawler-output_","filter-output_")
+<<<<<<< Updated upstream
                     nlp = spacy.load("en_core_web_sm")
                     boundary = re.compile('^[,]$')
                     nlp.add_pipe(custom_seg, before='parser')
+=======
+                    nlp = spacy.load("en_core_web_sm")                    
+                    # nlp.add_pipe(custom_seg, before='parser')
+>>>>>>> Stashed changes
                     handler.readlines()
                     doc = nlp(text)
                     for sentence in doc.sents:
