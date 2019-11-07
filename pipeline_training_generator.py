@@ -101,19 +101,6 @@ def main():
 # 19 reduced [ amod  ->  footprint / 100 / VERB / 99 : 106 ]
 # 20 carbon [ compound  ->  footprint / 92 / NOUN / 107 : 113 ]
 # 21 footprint [ pobj  ->  with / 92 / NOUN / 114 : 123 ]
-
-
-                    sentences = handler.readlines()
-                    doc_to_sents_map = dict()
-                    sentence_spans = list()
-                    for section in sentences:
-                    #     for sub_section in section:
-                        doc = nlp(section)
-                        sents = [x for x  in doc.sents]
-                        for sent in sents:
-                            doc_to_sents_map.setdefault(sent, doc)
-                        sentence_spans.extend(sents)                    
-                    filtered_sents = filter_sentences(doc_to_sents_map, sentence_spans)
                     write_output(filtered_sents, os.path.normpath(os.path.join(os.getcwd(), subfolderpath,filtered_filename)))
                     logger.info("Done processing sentence filter for file:%s..."%filename)
 
