@@ -5,6 +5,9 @@ import os.path
 import shutil
 import re
 import logging
+from pipeline_utils import getFolderPath, isEnglish
+
+
 logger = logging.getLogger('knowledgegraph')
 logger.setLevel(logging.INFO)
 
@@ -20,33 +23,45 @@ VERB = ["ROOT"]
 OBJ = ["dobj", "pobj", "dobj"] 
 
 def filter_sentences(doc_to_sents_map, sentences_arr):
+    logger.info("Start filtering %s sentences ..."%len(sentences_arr))
     index_list = list()
     for index, sentence in enumerate(sentences_arr):
-        has_subject = False
-        has_object = False
-        has_verb = False
-        for tok in doc_to_sents_map.get(sentence):
-            has_subject = True if has_subject or tok.dep_ in SUBJ else False
-            has_object = True if has_object or tok.dep_ in OBJ else False
-            has_verb = True if has_verb or tok.dep_ in VERB else False  
-            if has_subject:
-                print("index:%d, Found subject:%s"%(index, tok.text))
-            if has_object:
-                print("index:%d, Found object:%s"%(index, tok.text))
-            if has_verb:
-                print("index:%d, Found verb:%s"%(index, tok.text))                        
-        if has_subject & has_object & has_verb:
-            index_list.append(index)
-            print("added index:%d"%(index))
+        if isEnglish(sentence):
+            has_subject = False
+            has_object = False
+            has_verb = False
+            for tok in doc_to_sents_map.get(sentence):
+                has_subject = True if has_subject or tok.dep_ in SUBJ else False
+                has_object = True if has_object or tok.dep_ in OBJ else False
+                has_verb = True if has_verb or tok.dep_ in VERB else False  
+                if has_subject:
+                    logger.info("index:%d, Found subject:%s"%(index, tok.text))
+                    # print("index:%d, Found subject:%s"%(index, tok.text))
+                if has_object:
+                    logger.info("index:%d, Found object:%s"%(index, tok.text))
+                    # print("index:%d, Found object:%s"%(index, tok.text))
+                if has_verb:
+                    logger.info("index:%d, Found verb:%s"%(index, tok.text))                
+                    print("index:%d, Found verb:%s"%(index, tok.text))                        
+            if has_subject & has_object & has_verb:
+                index_list.append(index)
+                logger.info("added index:%d"%(index))
+                # print("added index:%d"%(index))
+            else:
+                result = "subject" if tok.dep_ in SUBJ else "verb" if tok.dep_ in VERB else "object" if tok.dep_ in OBJ else "none"
+                logger.info("index:%d, word:%s, dep:%s, type:%s " % (index, tok.text, tok.dep_, result))
+                # print("index:%d, word:%s, dep:%s, type:%s " % (index, tok.text, tok.dep_, result))
         else:
-            result="subject" if tok.dep_ in SUBJ else "verb" if tok.dep_ in VERB else "object" if tok.dep_ in OBJ else "none"
-            print("index:%d, word:%s, dep:%s, type:%s "%(index, tok.text, tok.dep_, result))
-    return [x for x in map(sentences_arr.__getitem__, index_list)] 
+            logger.warn("Skip due to non-English sentence - %s" % sentence)
+    filtered_resultset = [x for x in map(sentences_arr.__getitem__, index_list)]
+    logger.info("Done filtering %d/%d sentences ..."%(1-len(filtered_resultset)/len(sentences_arr)))
+    return filtered_resultset
 
 def write_output(filtered_sents, filtered_filepath):
     logger.info("Writing output to file: %s:"%filtered_filepath)
     with open(filtered_filepath, 'w') as handler:
         handler.writelines("%s" % sentence.text for sentence in filtered_sents)
+    logger.info("Writen output to file: %s:"%filtered_filepath)
 
 # needs to run first: python -m spacy download en_core_web_sm
 # def main(patterns_loc, text_loc, n=10000, lang="en"):
@@ -65,7 +80,6 @@ def main():
                     doc_to_sents_map = dict()
                     sentence_spans = list()
                     for section in sentences:
-                    #     for sub_section in section:
                         doc = nlp(section)
                         sents = [x for x  in doc.sents]
                         for sent in sents:
