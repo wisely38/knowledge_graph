@@ -1,21 +1,15 @@
 import spacy
-import plac
 from datetime import date
 import os.path
 import shutil
 import re
 import logging
-from pipeline_utils import getFolderPath
+import json
+from pipeline_utils import getFolderPath, build_internal_entities_attrs, convert_to_entities_json, convert_from_entities_json, write_entities_jsonfile, read_entities_jsonfile
+
 
 logger = logging.getLogger('knowledgegraph')
 logger.setLevel(logging.INFO)
-
-# @plac.annotations(
-#     patterns_loc=("Path to gazetteer", "positional", None, str),
-#     text_loc=("Path to Reddit corpus file", "positional", None, str),
-#     n=("Number of texts to read", "option", "n", int),
-#     lang=("Language class to initialise", "option", "l", str),
-# )
 
 SUBJ = ["nsubj","nsubjpass"] 
 VERB = ["ROOT"] 
@@ -67,29 +61,27 @@ LABEL_ASSETTYPE = "FIXED_INCOME"
 # other entity types that spaCy correctly recognized before. Otherwise, your
 # model might learn the new type, but "forget" what it previously knew.
 # https://explosion.ai/blog/pseudo-rehearsal-catastrophic-forgetting
-TRAIN_DATA = [
-    (
-        "Horses are too tall and they pretend to care about your feelings",
-        {"entities": [(0, 6, LABEL)]},
-    ),
-    ("Do they bite?", {"entities": []}),
-    (
-        "horses are too tall and they pretend to care about your feelings",
-        {"entities": [(0, 6, LABEL)]},
-    ),
-    ("horses pretend to care about your feelings", {"entities": [(0, 6, LABEL)]}),
-    (
-        "they pretend to care about your feelings, those horses",
-        {"entities": [(48, 54, LABEL)]},
-    ),
-    ("horses?", {"entities": [(0, 6, LABEL)]}),
-]
+# TRAIN_DATA = [
+#     (
+#         "Horses are too tall and they pretend to care about your feelings",
+#         {"entities": [(0, 6, LABEL)]},
+#     ),
+#     ("Do they bite?", {"entities": []}),
+#     (
+#         "horses are too tall and they pretend to care about your feelings",
+#         {"entities": [(0, 6, LABEL)]},
+#     ),
+#     ("horses pretend to care about your feelings", {"entities": [(0, 6, LABEL)]}),
+#     (
+#         "they pretend to care about your feelings, those horses",
+#         {"entities": [(48, 54, LABEL)]},
+#     ),
+#     ("horses?", {"entities": [(0, 6, LABEL)]}),
+# ]
 
 
 
-def format_data(raw_data):
-    train_data_record = tuple()
-    train_data_record.    
+
 
 
 # needs to run first: python -m spacy download en_core_web_sm
@@ -97,23 +89,51 @@ def format_data(raw_data):
 def main():
     # subfoldername = "/staging/" + date.today().strftime("%m-%d-%Y") 
     # subfolderpath = os.getcwd() + subfoldername
+    training_filename = 'preparation-training_data.json'
     subfolderpath = getFolderPath('staging')
     logger.info("Start processing sentence filter from folder:%s..."%subfolderpath)
     if os.path.exists(subfolderpath):
+        training_data = list()
         for filename in os.listdir(subfolderpath):
             if re.match("filtered-output_.+.txt", filename):
                 logger.info("Start processing training data generator for file:%s..."%filename)
                 with open(os.path.normpath(os.path.join(os.getcwd(), subfolderpath, filename)), "r") as handler:
-                    filtered_filename = filename.replace("filtered-output_","preparation-output_")
+                    # training_filename = filename.replace("filtered-output_","preparation-output_").replace('.txt','.json')
                     nlp = spacy.load("en_core_web_lg")                    
                     # nlp.add_pipe(custom_seg, before='parser')
                     sentences = handler.readlines()
-                    doc = nlp(text)
-                    for sentence in doc.sents:
-                        print(sentence.text)
-                    for tok in doc:
-                        if tok.pos_.strip() != "PUNCT" and tok.pos_.strip() != "SPACE":
-                            print(tok.i, tok, "[", tok.dep_, " -> ",tok.head.text,"/",tok.pos,"/", tok.pos_, "/",doc.text.index(tok.text),":",doc.text.index(tok.text)+len(tok.text),"]")
+                    count = 1
+   
+                    for section in sentences:
+                        doc = nlp(section)
+                        logger.debug("Start printing entities %s"%count)
+                        doc_ents = list()
+                        for ent in doc.ents:
+                            logger.debug(ent.text, ent.start,ent.end,ent.start_char, ent.end_char, ent.label_, doc[ent.start].ent_type_)
+                            doc_ents.append((ent.start_char, ent.end_char, ent.label_))
+                        training_data.append(build_internal_entities_attrs(doc.text, doc_ents))
+                        logger.debug("Done entities %s"%count)
+                        logger.debug("Start printing chunks %s"%count)
+                        for chunk in doc.noun_chunks:
+                            logger.debug(chunk.text, chunk.start,chunk.end,chunk.start_char, chunk.end_char, chunk.label_)
+                            logger.debug("Start printing span_ents %s"%count)
+                            for span_ent in chunk.ents:
+                                logger.debug(span_ent.text, span_ent.start,span_ent.end,span_ent.start_char, span_ent.end_char, span_ent.label_, doc[span_ent.start].ent_type_)
+                                training_data.append(build_internal_entities_attrs(doc.text, span_ent.start_char, span_ent.end_char, span_ent.label_))
+                            logger.debug("Done span_ents %s"%count)
+                        logger.debug("Done chunks %s"%count)         
+                        count +=1
+                    # for tok in doc:
+                    #     if tok.pos_.strip() != "PUNCT" and tok.pos_.strip() != "SPACE":
+                    #         print(tok.i, tok, "[", tok.dep_, " -> ",tok.head.text,"/",tok.pos,"/", tok.pos_, "/",doc.text.index(tok.text),":",doc.text.index(tok.text)+len(tok.text),"]")
+        with open(training_filename, 'w') as fp:
+            fp.write(
+                '[' +
+                ',\n'.join(json.dumps(i) for i in training_data) +
+                ']\n')
+        logger.info("Writen file:%s"%training_filename)  
+
+
 # 0 The [ det  ->  fund / 90 / DET / 0 : 3 ]
 # 1 HSBC [ compound  ->  fund / 96 / PROPN / 4 : 8 ]
 # 2 GIF [ compound  ->  fund / 96 / PROPN / 9 : 12 ]
@@ -142,19 +162,19 @@ def main():
 
 
 
-                    sentences = handler.readlines()
-                    doc_to_sents_map = dict()
-                    sentence_spans = list()
-                    for section in sentences:
-                    #     for sub_section in section:
-                        doc = nlp(section)
-                        sents = [x for x  in doc.sents]
-                        for sent in sents:
-                            doc_to_sents_map.setdefault(sent, doc)
-                        sentence_spans.extend(sents)                    
-                    filtered_sents = filter_sentences(doc_to_sents_map, sentence_spans)
-                    write_output(filtered_sents, os.path.normpath(os.path.join(os.getcwd(), subfolderpath,filtered_filename)))
-                    logger.info("Done processing sentence filter for file:%s..."%filename)
+                    # sentences = handler.readlines()
+                    # doc_to_sents_map = dict()
+                    # sentence_spans = list()
+                    # for section in sentences:
+                    # #     for sub_section in section:
+                    #     doc = nlp(section)
+                    #     sents = [x for x  in doc.sents]
+                    #     for sent in sents:
+                    #         doc_to_sents_map.setdefault(sent, doc)
+                    #     sentence_spans.extend(sents)                    
+                    # filtered_sents = filter_sentences(doc_to_sents_map, sentence_spans)
+                    # write_output(filtered_sents, os.path.normpath(os.path.join(os.getcwd(), subfolderpath,filtered_filename)))
+                    # logger.info("Done processing sentence filter for file:%s..."%filename)
 
 
 if __name__ == "__main__":
