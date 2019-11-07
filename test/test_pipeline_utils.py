@@ -22,12 +22,7 @@ def test_build_internal_entities_attrs(training_data):
     assert internal_repre[0] == training_data[0][0]
     assert internal_repre[1] == {"entities": [(7, 17, "PERSON")]}
 
-def test_convert_to_entities_json(internal_training_data):
+def test_convert_to_entities_json(internal_training_data, training_data):
     json_repre = convert_to_entities_json(internal_training_data)
-    assert json_repre[0] == training_data[0][0]
-    a, b = json.dumps(json_repre[1]['entities'][0], sort_keys=True), json.dumps({
-                "char_start": 7,
-                "char_end": 17,
-                "label": "PERSON"
-            } , sort_keys=True)
-    assert a==b
+    assert json_repre[0] == internal_training_data[0]
+    assert json_repre[1] == training_data[0]['entities'][0]
