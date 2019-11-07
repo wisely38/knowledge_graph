@@ -11,6 +11,11 @@ __all__ = ['getFolderPath', 'write_output', 'isEnglish']
 logger = logging.getLogger('knowledgegraph')
 logger.setLevel(logging.INFO)
 
+model_path_fasttext = './models/fasttext'
+model_filename_fasttext = 'lid.176.ftz'
+model_filepath_fasttext  = os.path.normpath(os.path.join(os.getcwd(), model_path_fasttext, model_filename_fasttext))
+model = fasttext.load_model(model_filepath_fasttext)
+
 
 def getFolderPath(pipeline_foldername):
     folder_path = os.getcwd() + "/" + pipeline_foldername + "/" + \
@@ -26,9 +31,9 @@ def write_output(sentences, filepath):
 
 
 def isEnglish(text):
+    global model
     isEnglish = True
-    try:
-        model = fasttext.load_model('lid.176.ftz')
+    try:        
         langs = model.predict(text, k=2)
         isEnglish = langs[0][0] == '__label__en'
     except Exception:
