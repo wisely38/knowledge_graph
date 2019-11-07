@@ -4,25 +4,35 @@ from urllib.parse import urlparse
 import os.path
 import shutil
 from datetime import date
+from random_useragent.random_useragent import Randomize
+import requests
 
 class FundSpider(scrapy.Spider):
     name = 'fundspider'
 
     def start_requests(self):
-        headers = {
-            "Host": "www.gbm.hsbc.com",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0",
+        r_agent = Randomize()
+        firstrequest_headers = {
+            "X-FORWARDED-FOR": "2.16.167.33",
+            "Host": "www.assetmanagement.hsbc.co.uk",
+            "User-Agent": r_agent.random_agent('desktop','windows'),
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.5",
             "Accept-Encoding": "gzip, deflate, br"
         }
+        firsturl = "https://hsbcbankglobal.sc.omtrdc.net/b/ss/hsbc-amg-uk,hsbc-amg-global-rollup/1/JS-2.0.0/s78194187988030?AQB=1&ndh=1&pf=1&t=7%2F10%2F2019%2011%3A45%3A31%204%20-480&sdid=5D631A30BB0D4398-0DF62F7812D9139F&mid=64095394369463805659018752405389641208&ce=UTF-8&ns=hsbcbankglobal&pageName=Global%20High%20Income%20Bond%20-%20HSBC%20Global%20Asset%20Management%20UK&g=https%3A%2F%2Fwww.assetmanagement.hsbc.co.uk%2Fen%2Fintermediary%2Finvestment-expertise%2Ffixed-income%2Fglobal-high-income-bond&cc=USD&server=www.assetmanagement.hsbc.co.uk&events=event27&v1=Global%20High%20Income%20Bond%20-%20HSBC%20Global%20Asset%20Management%20UK&v2=High%20Income%20Bond%20-%20HSBC%20Global%20Asset%20Management%20UK&v3=www.assetmanagement.hsbc.co.uk%2Fen%2Fintermediary%2Finvestment-expertise%2Ffixed-income%2Fglobal-high-income-bond&c6=hsbc-amg-uk%2Chsbc-amg-global-rollup&c7=11%3A45%20AM%7CThursday&c13=accept&v15=11%3A45%20AM%7CThursday&v16=hsbc-amg-uk%2Chsbc-amg-global-rollup&c17=uk-gam&v17=uk-gam&v96=content&v98=Terms%20and%20conditions&v99=accept&pe=lnk_o&pev2=no%20link_name&pid=Intermediary%20%7C%20Investment%20Expertise%20%7C%20Fixed%20Income%20%7C%20Global%20High%20Income%20Bond&pidt=1&oid=https%3A%2F%2Fwww.assetmanagement.hsbc.co.uk%2Fen%2Fintermediary%2Finvestment-expertise%2Ffixed-income%2Fglobal-high&ot=A&s=1920x1080&c=24&j=1.6&v=N&k=Y&bw=1835&bh=634&AQE=1"
+        response = requests.get(firsturl, headers=firstrequest_headers)
+        self.log("Http code,reason:%s,%s" % (response.status_code, response.reason))
+        referer = response.request.headers.get('Referer', None)
+        headers = firstrequest_headers.setdefault("Referer",referer)
+        self.log("headers:%s"%headers)
         urls_filepath = os.path.join("./resources/","urls.txt")
         with open(urls_filepath, mode='r') as handler:
             self.start_urls = handler.readlines()
 
         self.subfoldername = "../staging" + "/" + date.today().strftime("%m-%d-%Y") 
         subfolderpath = os.path.normpath(os.path.join(os.getcwd(), self.subfoldername))
-        print("subfolderpath:%s"%type(subfolderpath))
+        self.log("subfolderpath:%s"%type(subfolderpath))
         if os.path.exists(subfolderpath):
             # os.rmdir(subfolderpath)
             shutil.rmtree(subfolderpath, ignore_errors=True)
