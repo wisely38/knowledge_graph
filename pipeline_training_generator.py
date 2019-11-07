@@ -5,6 +5,8 @@ import os.path
 import shutil
 import re
 import logging
+from pipeline_utils import getFolderPath
+
 logger = logging.getLogger('knowledgegraph')
 logger.setLevel(logging.INFO)
 
@@ -19,34 +21,7 @@ SUBJ = ["nsubj","nsubjpass"]
 VERB = ["ROOT"] 
 OBJ = ["dobj", "pobj", "dobj"] 
 
-def filter_sentences(doc_to_sents_map, sentences_arr):
-    index_list = list()
-    for index, sentence in enumerate(sentences_arr):
-        has_subject = False
-        has_object = False
-        has_verb = False
-        for tok in doc_to_sents_map.get(sentence):
-            has_subject = True if has_subject or tok.dep_ in SUBJ else False
-            has_object = True if has_object or tok.dep_ in OBJ else False
-            has_verb = True if has_verb or tok.dep_ in VERB else False  
-            if has_subject:
-                print("index:%d, Found subject:%s"%(index, tok.text))
-            if has_object:
-                print("index:%d, Found object:%s"%(index, tok.text))
-            if has_verb:
-                print("index:%d, Found verb:%s"%(index, tok.text))                        
-        if has_subject & has_object & has_verb:
-            index_list.append(index)
-            print("added index:%d"%(index))
-        else:
-            result="subject" if tok.dep_ in SUBJ else "verb" if tok.dep_ in VERB else "object" if tok.dep_ in OBJ else "none"
-            print("index:%d, word:%s, dep:%s, type:%s "%(index, tok.text, tok.dep_, result))
-    return [x for x in map(sentences_arr.__getitem__, index_list)] 
 
-def write_output(filtered_sents, filtered_filepath):
-    logger.info("Writing output to file: %s:"%filtered_filepath)
-    with open(filtered_filepath, 'w') as handler:
-        handler.writelines("%s" % sentence.text for sentence in filtered_sents)
 
 def custom_seg(doc):
     prev = doc[0].text
@@ -61,8 +36,9 @@ def custom_seg(doc):
 # needs to run first: python -m spacy download en_core_web_sm
 # def main(patterns_loc, text_loc, n=10000, lang="en"):
 def main():
-    subfoldername = "/staging/" + date.today().strftime("%m-%d-%Y") 
-    subfolderpath = os.getcwd() + subfoldername 
+    # subfoldername = "/staging/" + date.today().strftime("%m-%d-%Y") 
+    # subfolderpath = os.getcwd() + subfoldername
+    subfolderpath = getFolderPath('staging')
     logger.info("Start processing sentence filter from folder:%s..."%subfolderpath)
     if os.path.exists(subfolderpath):
         for filename in os.listdir(subfolderpath):
@@ -101,6 +77,17 @@ def main():
 # 19 reduced [ amod  ->  footprint / 100 / VERB / 99 : 106 ]
 # 20 carbon [ compound  ->  footprint / 92 / NOUN / 107 : 113 ]
 # 21 footprint [ pobj  ->  with / 92 / NOUN / 114 : 123 ]
+
+
+# training data
+# TRAIN_DATA = [
+#     ("Who is Shaka Khan?", {"entities": [(7, 17, "PERSON")]}),
+#     ("I like London and Berlin.", {
+#      "entities": [(7, 13, "LOC"), (18, 24, "LOC")]}),
+# ]
+
+
+
 
 
                     sentences = handler.readlines()
