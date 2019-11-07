@@ -63,11 +63,11 @@ class FundSpider(scrapy.Spider):
 
     def get_sentences(self, soup):
         elements = list()
-        for ele in soup.find_all(["title","div", "p", "br", "span","h5","h4","h3","h2","h1","a"]):
+        for ele in soup.find_all(["title","div", "p", "br", "span","h5","h4","h3","h2","h1","a","li"]):
             if ele.find(class_='image') or self.should_skip_element(ele) or isinstance(ele.text, Comment) or ele is None:
                 continue
             if ele and len(ele)>0 and str(ele.string) != "None":
-                elements.append(ele.string.replace("\n", "").replace(u'\xa0', u' ').strip())
+                elements.append(ele.string.replace("<strong>","").replace("</strong>","").replace("\n", "").replace(u'\xa0', u' ').strip())
         return set(elements)       
 
     def parse(self, response):
