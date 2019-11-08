@@ -94,9 +94,11 @@ def main():
     subfoldername = "/staging/" + date.today().strftime("%m-%d-%Y") 
     subfolderpath = os.getcwd() + subfoldername
     training_filename = 'preparation-training_data.json'
+    relations_filename = 'preparation-relations_data.json'
     logger.info("Start processing sentence filter from folder:%s..."%subfolderpath)
     if os.path.exists(subfolderpath):
         training_data = list()
+        relation_data = list()
         for filename in os.listdir(subfolderpath):
             if re.match("filtered-output_.+.txt", filename):
                 logger.info("Start processing training data generator for file:%s..."%filename)
@@ -156,11 +158,13 @@ def main():
                             #     doc_ents.append((span_ent.start_char, span_ent.end_char, span_ent.label_))
                             # doc_ents.append((chunk.start_char, chunk.end_char, LABEL_NEWENTITY))
                             if len(subject_attrs) > 2:
+                                doc_ents.append((chunk.start_char, chunk.end_char, LABEL_NEWENTITY))
                                 if subject_attrs[0]>=chunk.start_char and subject_attrs[1]<=chunk.end_char: #subject_attrs[2] in chunk.text:
                                     doc_relations.append((chunk.start_char, chunk.end_char, LABEL_SUBJECT, chunk.text))
                                 else:
                                     doc_relations.append((subject_attrs[0], subject_attrs[1], LABEL_SUBJECT, subject_attrs[2]))                                                                   
                             if len(object_attrs) > 2:
+                                doc_ents.append((chunk.start_char, chunk.end_char, LABEL_NEWENTITY))
                                 if object_attrs[0] >= chunk.start_char and object_attrs[1] <= chunk.end_char: #and verb_attrs[2] in chunk.text:
                                     doc_relations.append((chunk.start_char, chunk.end_char, LABEL_OBJECT, chunk.text))
                                 else:
@@ -174,8 +178,8 @@ def main():
                                 doc_relations.append((verb_attrs[0], verb_attrs[1], LABEL_VERB, verb_attrs[2]))                                                            
                                 # doc_relations.append((tok.start_char, tok.end_char, LABEL_OBJECT))                              
                             logger.info("Done span_ents %s"%count)
-                        # training_data.append(build_internal_entities_attrs(doc.text, doc_ents))
-                        training_data.append(build_internal_all_attrs(doc.text, doc_ents,doc_relations ))
+                        training_data.append(build_internal_entities_attrs(doc.text, doc_ents))
+                        relation_data.append(build_internal_relations_attrs(doc.text, doc_relations ))
                         
                         logger.info("Done chunks %s"%count)         
                         count +=1
@@ -186,6 +190,10 @@ def main():
             output_text = '[' + ',\n'.join(json.dumps(i) for i in training_data) + ']\n'
             fp.write(output_text.encode('utf8').decode('utf8'))
         logger.info("Writen file:%s"%training_filename)  
+        with open(os.path.join(getFolderPath('staging'), relations_filename), 'w') as fp:
+            output_text = '[' + ',\n'.join(json.dumps(i) for i in relation_data) + ']\n'
+            fp.write(output_text.encode('utf8').decode('utf8'))            
+        logger.info("Writen file:%s"%relations_filename)  
     else:
         logger.error("Cannot find folder path:%s"%subfolderpath)  
 
