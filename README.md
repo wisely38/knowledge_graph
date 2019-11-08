@@ -27,9 +27,11 @@ Instruction
 
 7. go to folder "knowledge_graph" and run "python pipeline_training_generator.py", in here we:
 
-i. 	generate NER-based entities based on NLP tags that indicates nouns and object related tokens with function to possible guess annotated labels like RISK/ASSET/PRODUCT
-ii.	generate entity-relation pairs based on subject, object, main verb which determined by NLP Universal Dependencies tags
-ii.	also generate annotated training data for further machine modeling if time is allowed to do so with the possible guess annotated labels found in i above
+i. generate NER-based entities based on NLP tags that indicates nouns and object related tokens with function to possible guess annotated entity labels like RISK/ASSET/PRODUCT, the output annotated entites dataset "preparation-training_data.json" includes each sentence with their identified entities tags and character start + stop positions where new this dataset with newly annotated labels could be further feed into model training in order to update Spacy's NER recognizer for it to predict similar entities in new data
+
+ii. generate entity-relation pairs based on subject, object, main verb (relation).  The relation was mainly based on determining the main verb of the sentence by filtering  each token's NLP Universal Dependencies tags.
+
+iii. it also generate annotated training data for further NER machine modeling (if more time allowed to do so) with each sentence tagged by the possible annotated labels found in i above
 
 
 outputs: 
