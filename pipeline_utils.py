@@ -28,6 +28,16 @@ def build_internal_entities_attrs(sentence, entities_attrs):
     internal_entities_attrs_record = (sentence, entities)
     return internal_entities_attrs_record
 
+def build_internal_relations_attrs(sentence, relations_attrs):
+    relations = {"relations": relations_attrs}
+    internal_relations_attrs_record = (sentence, relations)
+    return internal_relations_attrs_record
+
+def build_internal_all_attrs(sentence, entities_attrs, relations_attrs):
+    entities = {"entities": entities_attrs}
+    relations = {"relations": relations_attrs}
+    internal_all_attrs_record = (sentence, entities, relations)
+    return internal_all_attrs_record
 
     # entities_attrs = list()
     # for entity_attrs in converted_entities_attrs_record[1]['entities']:
@@ -44,11 +54,6 @@ def convert_to_entities_json(internal_entities_attrs_record):
     converted_entities_attrs_record = copy.deepcopy(internal_entities_attrs_record)
     entities_attrs = list()
     for entity_attrs in converted_entities_attrs_record[1]['entities']:
-        # entity_attrs = {
-        #         "char_start": entity_attrs[0],
-        #         "char_end": entity_attrs[1],
-        #         "label": entity_attrs[2]
-        # }
         entities_attrs.append([entity_attrs[0], entity_attrs[1], entity_attrs[2]])
     converted_entities_attrs_record[1]['entities'] = entities_attrs
     return converted_entities_attrs_record

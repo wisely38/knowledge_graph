@@ -5,7 +5,7 @@ import shutil
 import re
 import logging
 import json
-from pipeline_utils import getFolderPath, build_internal_entities_attrs, convert_to_entities_json, convert_from_entities_json, write_entities_jsonfile, read_entities_jsonfile
+from pipeline_utils import getFolderPath, build_internal_entities_attrs, convert_to_entities_json, convert_from_entities_json, write_entities_jsonfile, read_entities_jsonfile, build_internal_all_attrs
 
 
 logger = logging.getLogger('knowledgegraph')
@@ -54,7 +54,11 @@ LABEL_ASSET_TYPE = "ASSET_TYPE"
 LABEL_RISK_TYPE = "RISK_TYPE"
 LABEL_EXPERTISE_TYPE = "EQUITY"
 LABEL_ASSETTYPE = "FIXED_INCOME"
-
+LABEL_NEWENTITY = "NEW_ENTITY"
+LABEL_RELATION = "RELATION"
+LABEL_SUBJECT = "SUBJECT"
+LABEL_VERB = "VERT"
+LABEL_OBJECT = "OBJECT"
 
 # training data
 # Note: If you're using an existing model, make sure to mix in examples of
@@ -87,10 +91,9 @@ LABEL_ASSETTYPE = "FIXED_INCOME"
 # needs to run first: python -m spacy download en_core_web_sm
 # def main(patterns_loc, text_loc, n=10000, lang="en"):
 def main():
-    # subfoldername = "/staging/" + date.today().strftime("%m-%d-%Y") 
-    # subfolderpath = os.getcwd() + subfoldername
+    subfoldername = "/staging/" + date.today().strftime("%m-%d-%Y") 
+    subfolderpath = os.getcwd() + subfoldername
     training_filename = 'preparation-training_data.json'
-    subfolderpath = getFolderPath('staging')
     logger.info("Start processing sentence filter from folder:%s..."%subfolderpath)
     if os.path.exists(subfolderpath):
         training_data = list()
@@ -106,33 +109,85 @@ def main():
    
                     for section in sentences:
                         doc = nlp(section)
-                        logger.debug("Start printing entities %s"%count)
+                        logger.info("Start printing entities %s"%count)
                         doc_ents = list()
                         for ent in doc.ents:
                             logger.debug(ent.text, ent.start,ent.end,ent.start_char, ent.end_char, ent.label_, doc[ent.start].ent_type_)
                             doc_ents.append((ent.start_char, ent.end_char, ent.label_))
-                        training_data.append(build_internal_entities_attrs(doc.text, doc_ents))
-                        logger.debug("Done entities %s"%count)
-                        logger.debug("Start printing chunks %s"%count)
+                        # training_data.append(build_internal_entities_attrs(doc.text, doc_ents))
+                        logger.info("Done entities %s"%count)
+                        logger.info("Start printing chunks %s"%count)
+                        subject_attrs = list()
+                        verb_attrs=list()
+                        object_attrs = list()
+                        doc_relations = list()
+                        for tok in doc:
+                            is_subject = True if tok.dep_ in SUBJ else False
+                            is_object = True if tok.dep_ in OBJ else False
+                            is_verb = True if tok.dep_ in VERB else False
+                            if is_subject:
+                                subject_attrs.append(tok.idx)
+                                subject_attrs.append(tok.idx + len(tok))
+                                subject_attrs.append(tok.text)
+                            if is_object:
+                                object_attrs.append(tok.idx)
+                                object_attrs.append(tok.idx + len(tok))
+                                object_attrs.append(tok.text)
+                            if is_verb:
+                                verb_attrs.append(tok.idx)
+                                verb_attrs.append(tok.idx + len(tok))
+                                verb_attrs.append(tok.text)
+                            if is_subject or is_object or is_verb:                                                     
+                                logger.info("word:%s, dep:%s, is_subject:%s, is_object:%s, is_verb:%s" % (tok.text, tok.dep_, is_subject, is_object, is_verb))    
+                                logger.info("token start:%s, token end:%s"%(tok.idx,tok.idx+len(tok)))
+                            # if len(subject_attrs) > 2 and subject_attrs[2] in chunk.text:
+                            #    doc_relations.append((tok.start_char, tok.end_char, LABEL_SUBJECT))                                                         
+                            # if len(object_attrs) > 2 and object_attrs[2] in chunk.text:
+                            #    doc_relations.append((tok.start_char, tok.end_char, LABEL_VERB))                                                         
+                            # if len(verb_attrs) > 2 and verb_attrs[2] in chunk.text:
+                            #    doc_relations.append((tok.start_char, tok.end_char, LABEL_OBJECT))                                                         
+
                         for chunk in doc.noun_chunks:
-                            logger.debug(chunk.text, chunk.start,chunk.end,chunk.start_char, chunk.end_char, chunk.label_)
-                            logger.debug("Start printing span_ents %s"%count)
-                            for span_ent in chunk.ents:
-                                logger.debug(span_ent.text, span_ent.start,span_ent.end,span_ent.start_char, span_ent.end_char, span_ent.label_, doc[span_ent.start].ent_type_)
-                                training_data.append(build_internal_entities_attrs(doc.text, span_ent.start_char, span_ent.end_char, span_ent.label_))
-                            logger.debug("Done span_ents %s"%count)
-                        logger.debug("Done chunks %s"%count)         
+                            logger.info(chunk.text, chunk.start,chunk.end,chunk.start_char, chunk.end_char, chunk.label_)
+                            logger.info("Start printing span_ents %s"%count)
+                            # span_ents = list()
+                            # for span_ent in chunk.ents:
+                            #     logger.info(span_ent.text, span_ent.start, span_ent.end, span_ent.start_char, span_ent.end_char, span_ent.label_, doc[span_ent.start].ent_type_)
+                            #     doc_ents.append((span_ent.start_char, span_ent.end_char, span_ent.label_))
+                            # doc_ents.append((chunk.start_char, chunk.end_char, LABEL_NEWENTITY))
+                            if len(subject_attrs) > 2:
+                                if subject_attrs[0]>=chunk.start_char and subject_attrs[1]<=chunk.end_char: #subject_attrs[2] in chunk.text:
+                                    doc_relations.append((chunk.start_char, chunk.end_char, LABEL_SUBJECT, chunk.text))
+                                else:
+                                    doc_relations.append((subject_attrs[0], subject_attrs[1], LABEL_SUBJECT, subject_attrs[2]))                                                                   
+                            if len(object_attrs) > 2:
+                                if object_attrs[0] >= chunk.start_char and object_attrs[1] <= chunk.end_char: #and verb_attrs[2] in chunk.text:
+                                    doc_relations.append((chunk.start_char, chunk.end_char, LABEL_OBJECT, chunk.text))
+                                else:
+                                    doc_relations.append((object_attrs[0], object_attrs[1], LABEL_OBJECT, object_attrs[2]))                                   
+
+                                # doc_relations.append((tok.start_char, tok.end_char, LABEL_VERB))                                                         
+                            if len(verb_attrs) > 2:
+                                # if verb_attrs[0] >= chunk.start_char and verb_attrs[1] <= chunk.end_char: #and object_attrs[2] in chunk.text:
+                                #     doc_relations.append((chunk.start_char, chunk.end_char, LABEL_VERB, chunk.text))
+                                # else:
+                                doc_relations.append((verb_attrs[0], verb_attrs[1], LABEL_VERB, verb_attrs[2]))                                                            
+                                # doc_relations.append((tok.start_char, tok.end_char, LABEL_OBJECT))                              
+                            logger.info("Done span_ents %s"%count)
+                        # training_data.append(build_internal_entities_attrs(doc.text, doc_ents))
+                        training_data.append(build_internal_all_attrs(doc.text, doc_ents,doc_relations ))
+                        
+                        logger.info("Done chunks %s"%count)         
                         count +=1
                     # for tok in doc:
                     #     if tok.pos_.strip() != "PUNCT" and tok.pos_.strip() != "SPACE":
                     #         print(tok.i, tok, "[", tok.dep_, " -> ",tok.head.text,"/",tok.pos,"/", tok.pos_, "/",doc.text.index(tok.text),":",doc.text.index(tok.text)+len(tok.text),"]")
-        with open(training_filename, 'w') as fp:
-            fp.write(
-                '[' +
-                ',\n'.join(json.dumps(i) for i in training_data) +
-                ']\n')
+        with open(os.path.join(getFolderPath('staging'), training_filename), 'w') as fp:
+            output_text = '[' + ',\n'.join(json.dumps(i) for i in training_data) + ']\n'
+            fp.write(output_text.encode('utf8').decode('utf8'))
         logger.info("Writen file:%s"%training_filename)  
-
+    else:
+        logger.error("Cannot find folder path:%s"%subfolderpath)  
 
 # 0 The [ det  ->  fund / 90 / DET / 0 : 3 ]
 # 1 HSBC [ compound  ->  fund / 96 / PROPN / 4 : 8 ]
