@@ -84,7 +84,7 @@ def main():
                             doc_ents.append((ent.start_char, ent.end_char, ent.label_))
                         logger.info("Done entities %s"%count)
                         logger.info("Start printing chunks %s" % count)
-                        # we will determine 
+                        # we will determine subject, object and verb based on dependency tags
                         subject_attrs = list()
                         verb_attrs=list()
                         object_attrs = list()
@@ -110,6 +110,7 @@ def main():
                                 logger.info("word:%s, dep:%s, is_subject:%s, is_object:%s, is_verb:%s" % (tok.text, tok.dep_, is_subject, is_object, is_verb))    
                                 logger.info("token start:%s, token end:%s"%(tok.idx,tok.idx+len(tok)))                                              
 
+                        # added noun chunked tokens to include all possible risk, asset, and product entities using the dependency properties
                         for chunk in doc.noun_chunks:
                             logger.info(chunk.text, chunk.start,chunk.end,chunk.start_char, chunk.end_char, chunk.label_)
                             logger.info("Start processing noun chunks %s" % count)
