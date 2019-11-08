@@ -8,7 +8,7 @@ import json
 import copy
 
 
-__all__ = ['getFolderPath', 'write_output', 'isEnglish', 'build_internal_entities_attrs', 'convert_to_entities_json','convert_from_entities_json','write_entities_jsonfile','read_entities_jsonfile']
+__all__ = ['getFolderPath', 'write_output', 'isEnglish', 'dedup_relations', 'build_internal_relations_attrs', 'build_internal_entities_attrs', 'convert_to_entities_json','convert_from_entities_json','write_entities_jsonfile','read_entities_jsonfile','build_internal_relationsonly_attrs']
 
 logger = logging.getLogger('knowledgegraph')
 logger.setLevel(logging.INFO)
@@ -23,15 +23,33 @@ model = fasttext.load_model(model_filepath_fasttext)
 #     internal_entities_attrs_record = (sentence, entities)
 #     return internal_entities_attrs_record
 
+def dedup_relations(relations_arr):
+    dedupped_relations = list()
+    for relation in relations_arr:
+        if relation not in dedupped_relations:
+            dedupped_relations.append(relation)
+    return dedupped_relations
+
+
 def build_internal_entities_attrs(sentence, entities_attrs):
     entities = {"entities": entities_attrs}
     internal_entities_attrs_record = (sentence, entities)
     return internal_entities_attrs_record
 
-def build_internal_relations_attrs(sentence, relations_attrs):
-    relations = {"relations": relations_attrs}
+def build_internal_relations_attrs(sentence, relations_arr):
+    relations_map = dict()
+    for index, value in enumerate(dedup_relations(relations_arr)):
+        relations_map.setdefault(index, value)
+    relations = {"relations": relations_map}
     internal_relations_attrs_record = (sentence, relations)
     return internal_relations_attrs_record
+
+def build_internal_relationsonly_attrs(relations_arr):
+    relations_map = dict()
+    for index, value in enumerate(dedup_relations(relations_arr)):
+        relations_map.setdefault(index, value)
+    relations = {"relations": relations_map}
+    return relations    
 
 def build_internal_all_attrs(sentence, entities_attrs, relations_attrs):
     entities = {"entities": entities_attrs}

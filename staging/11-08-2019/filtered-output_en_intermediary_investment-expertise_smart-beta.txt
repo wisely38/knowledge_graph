@@ -1,0 +1,44 @@
+Cap-weighted indices can be inefficient and stock prices can be noisy relative to their fair value
+Our bottom-up methodology combines factor scores at the stock level
+This Site is intended for Financial Intermediaries in the UK only.
+Pure factor framework provides minimal unintended risks and low correlations among factors
+If you are seeing this message, we have detected that you are using an older, unsupported browser.
+We apply strict active limits at the sector, country and factor level to avoid taking unrewarded risks
+Fundamental research focuses on confirming a stock’s volatility outlook and whether its profitability is sustainable
+We then apply minimum variance optimisation to the top quartile of ranked stocks to create a low volatility portfolio
+The key elements of our factor investment process include quantitative stock selection, robust portfolio construction and consistent implementation with integrated risk management:
+Our approach combines quantitative discipline and qualitative judgment
+Systematic rebalancing leverages potential market mispricing while keeping turnover low
+Fundamental strategies include our suite of Economic Scale Equity (ESE).Launched in June 2012, ESE strategies weigh companies by their economic footprint, aiming for better risk-adjusted returns relative to a market cap-weighted index.Our methodology was created “in house” by our quantitative research team
+Please be aware that the external site policies will differ from our website terms and conditions and privacy policy.The next site will open in a new browser window or tab.
+We have robust implementation capabilities and a strong technology and risk modelling infrastructure
+We take your security very seriously.In order to protect you and our systems, we are making changes to all HSBC websites that means some of the oldest web browser versions will no longer be able to access these sites.Generally, the latest versions of a browser (like Internet Explorer, Google Chrome, Apple Safari, etc.) and an operating system family (like Microsoft Windows, MacOS) have the most up-to-date security features.
+We offer off-the-shelf and bespoke smart beta and factor-based strategies with global, regional and country-specific variations.
+Lower volatility strategies can offer better risk-adjusted returns than a market cap index equivalent and their lower drawdown potential helps preserve capital in down markets.
+We calculate each company’s “value-add” — the difference between its output (sales) and inputs (its purchases of goods and services from other businesses)
+We design and validate each factor from scratch.Metrics and fundamental data elements are carefully selected based on decades of experience in hands-on factor investing
+A theoretically sound and intuitive approach that breaks the link between index weight and market price, enabling superior diversification and better capture of the noise that influences market prices
+Limited style bias facilitates use as the core building block of an equity allocation
+A weighting approach that captures a company’s economic activity (its contribution to gross national product (GNP)—or its “value-add") yields stable weights with low linkage to share prices
+You are leaving the HSBC Global Asset Management website.
+I have read and accept the terms and wish to continue into this site.I confirm that I am a Financial Intermediary based in the UK.
+Our global multi-factor strategy has a long and stable track record of 10+ years
+Our fundamental research adds value within a disciplined framework, helping to avoid false signals.This is distinct from pure passive approaches and pure quantitative methods
+The value of investments and any income from them can go down as well as up and investors may not get back the amount originally invested.Where overseas investments are held the rate of currency exchange may also cause the value of such investments to fluctuate.
+Beginning of dialog window.It begins with a heading called "Terms and Conditions".Escape will cancel and close the window.
+A "pure" factor framework maximises exposure to the desired factors while minimising all other unintended exposures
+A multi-factor approach should be customisable to provide strategic and tactical exposures to desired factors with targeted tracking error and risk controls
+We include Environmental, Social and Governance (ESG) research in our process to confirm a stock’s volatility characteristics and whether its profitability levels are sustainable
+Factor investing is based on the observation that stocks with certain characteristics (or more precisely, premia) have outperformed the broader market over time on a risk-adjusted basis.Allocating to factors gives investors transparent and cost effective access to these sources of returns, enabling them to better understand and manage underlying portfolio risks.
+A company’s weight is determined by its “value add” / sum of all company “value adds”
+HSBC Global Asset Management has a long track record of partnering with clients to provide best in class off-the-shelf and bespoke smart beta strategies.
+Multi-factor strategies provide controlled exposure to multiple factors (Value, Quality, Low Risk, Small Size, Momentum) aiming for consistent outperformance relative to a traditional index equivalent and with targeted tracking error.  Through our proprietary risk models, we tailor our factor-based strategies to incorporate client-specific guidelines including bespoke tracking error levels, factor exposures and ESG constraints
+Volatility focused strategies combine quantitative discipline and qualitative judgment.We capture quality companies based on attractive profitability and valuation profiles and construct a portfolio optimised for lower volatility.  Proprietary fundamental research and integrated Environmental, Social and Governance (ESG) analysis are used to confirm stock volatility characteristics and whether company profitability levels can be sustained
+Beginning of dialog window.It begins with a heading called "You are leaving the HSBC AMG website.".Escape will cancel and close the window.
+We identify and rank quality stocks with attractive profitability and valuation profiles
+Investment approach is highly adaptable to implement customised portfolios based on client requirements
+Our investment process sets us apart from more traditional low volatility approaches.We focus first on finding quality stocks (strong profitability and valuation) and then optimise for low volatility.This supports diversification and helps avoid crowded trades, sector concentration and interest rate sensitivity
+Company “value-add” amounts are disbursed to equity holders, debt holders, employees and the government.
+The low volatility portfolio includes some less correlated, higher volatility names to reduce absolute risk
+Smart beta and factor-based strategies offer investment options that lie between active and passive investing.
+Our portfolio construction process optimises exposure to alpha signals in a transparent and consistent way

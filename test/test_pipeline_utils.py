@@ -2,7 +2,7 @@ import pytest
 import sys
 import json
 sys.path.append("..") 
-from pipeline_utils import build_internal_entities_attrs, convert_to_entities_json, convert_from_entities_json
+from pipeline_utils import build_internal_entities_attrs, convert_to_entities_json, convert_from_entities_json, build_internal_relations_attrs, dedup_relations
 
 @pytest.fixture
 def training_data():
@@ -24,6 +24,13 @@ def internal_training_data(training_data):
 @pytest.fixture
 def entities_json_data(internal_training_data):
     return convert_to_entities_json(internal_training_data[1])
+
+@pytest.fixture
+def internal_relations_json_data():
+    return [
+        ("The benchmark includes mainly investment-grade corporate bonds denominated in USD, EUR and GBP, with exposure to bonds denominated in any given currency limited to below 50%\n", {"relations": [[[14, 22, "VERT", "include"], [57, 62, "OBJECT", "bond"], [4, 13, "SUBJECT", "benchmark"]],[[14, 22, "VERT", "has"], [57, 62, "OBJECT", "bond"], [4, 13, "SUBJECT", "benchmark"]]]}),
+        ("The benchmark includes mainly investment-grade corporate bonds denominated in USD, EUR and GBP, with exposure to bonds denominated in any given currency limited to below 50%\n", {"relations": [[[14, 22, "VERT", "include"], [57, 62, "OBJECT", "bond"], [4, 13, "SUBJECT", "benchmark"]],[[14, 22, "VERT", "include"], [57, 62, "OBJECT", "bond"], [4, 13, "SUBJECT", "benchmark"]]]}),
+    ]
 
 def test_build_internal_entities_attrs(internal_training_data):
     internal_repre = build_internal_entities_attrs(internal_training_data[0][0],internal_training_data[0][1]['entities'])
@@ -48,3 +55,13 @@ def test_convert_from_entities_json(entities_json_data):
     assert entities_json_data[0] == internal_repre[0]
     for index in range(len(entities_json_data[1]['entities'][0])):
         assert entities_json_data[1]['entities'][0][index] == entities_json_data[1]['entities'][0][index]
+
+def test_build_internal_relations_attrs(internal_relations_json_data):
+    internal_relations = build_internal_relations_attrs(internal_relations_json_data[0][0], internal_relations_json_data[0][1]['relations'])
+    assert len(internal_relations[1]['relations']) == 2
+    internal_relations = build_internal_relations_attrs(internal_relations_json_data[1][0], internal_relations_json_data[1][1]['relations'])
+    assert len(internal_relations[1]['relations']) == 1    
+    
+def test_dedup_relations(internal_relations_json_data):
+    dedupped = dedup_relations(internal_relations_json_data[1][1]['relations'])
+    assert len(dedupped)<len(internal_relations_json_data[1][1]['relations'])
